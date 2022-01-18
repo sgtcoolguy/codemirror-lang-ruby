@@ -31,7 +31,27 @@ Arg {
 
 Primary {
 	Literal |
-	Variable
+	Variable |
+	kw<"def"> FunctionName ArgDeclaration compstatement kw<"end">
+}
+
+ArgDeclaration {
+	"(" ArgumentList ")" |
+	ArgumentList semi
+}
+
+ArgumentList {
+	identifier ("," identifier)* ("," restArgument)? ("," closureArgument)? |
+	restArgument ("," closureArgument)? |
+	closureArgument?
+}
+
+restArgument {
+	"*" identifier
+}
+
+closureArgument {
+	"&" identifier
 }
 
 Variable {
@@ -41,13 +61,18 @@ Variable {
 Literal {
 	String |
 	Number |
-	boolean
+	boolean |
+	Symbol
 }
 
 VarName {
 	global |
-	"@" identifier |
+	localVariable |
 	identifier
+}
+
+localVariable {
+	"@" identifier
 }
 
 global {
@@ -60,6 +85,39 @@ Number {
 	hexadecimal |
 	octal |
 	binary
+}
+
+Symbol {
+	":" (global | localVariable | FunctionName)
+}
+
+FunctionName {
+	identifier | 
+	".." |
+	"|" |
+	"^" |
+	"&" |
+	"<=>" |
+	"==" |
+	"===" |
+	"=~" |
+	">" |
+	">=" |
+	"<" |
+	"<=" |
+	"+" |
+	"-" |
+	"*" |
+	"/" |
+	"%" |
+	"**" |
+	"<<" |
+	">>" |
+	"~" |
+	"+@" |
+	"-@" |
+	"[]" |
+	"[]="
 }
 
 @tokens {

@@ -15,6 +15,18 @@ identifier = 'string';
 
 something = true;
 
+def method(arg, *rest)
+end
+
+def each_explicit(&block)
+  return to_enum(:each) unless block
+
+  i = 0
+  while i < size
+    block.call at(i)
+    i += 1
+  end
+end
 `
 
 new EditorView({
