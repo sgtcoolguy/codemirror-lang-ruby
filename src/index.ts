@@ -12,6 +12,7 @@ import { styleTags, tags as t } from "@codemirror/highlight";
 import {
   completeFromList,
   ifNotIn,
+  Completion,
   snippetCompletion as snip,
 } from "@codemirror/autocomplete";
 
@@ -37,18 +38,15 @@ export const rubyLanguage = LRLanguage.define({
         },
       }),
       styleTags({
-        Identifier: t.variableName,
-        Boolean: t.bool,
+        VarName: t.variableName,
+        BooleanLiteral: t.bool,
         String: t.string,
-        IndentedString: t.string,
         LineComment: t.lineComment,
         BlockComment: t.blockComment,
-        Float: t.float,
-        Integer: t.integer,
+        // Float: t.float,
+        Number: t.integer,
         Null: t.null,
         URI: t.url,
-        SPath: t.literal,
-        Path: t.literal,
         "( )": t.paren,
         "{ }": t.brace,
         "[ ]": t.squareBracket,

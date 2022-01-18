@@ -1,12 +1,20 @@
 import { basicSetup, EditorState } from '@codemirror/basic-setup';
-import { css } from '@codemirror/lang-css';
 import { EditorView } from '@codemirror/view';
 import { ruby, parser } from "../dist/";
 import { printTree } from "./print-lezer-tree";
 import { oneDark } from '@codemirror/theme-one-dark';
 
 const doc = `
-// input sample ruby code here
+=begin
+  Multi-line comment
+=end
+$global = 1234;
+# input sample ruby code here
+identifier = 'string';
+@var = 1_234.56e7;
+
+something = true;
+
 `
 
 new EditorView({
