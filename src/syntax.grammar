@@ -1,43 +1,234 @@
+@precedence {
+//  uplus @right
+//  squiggle @right,
+//  bang @right,
+//  power @right,
+//  uminus @right,
+//  uminusNum @right,
+  modulo @left,
+  divide @left,
+  times @left,
+  minus @left,
+  plus @left,
+//  rightshift @left,
+//  leftshirt @left,
+//  ampersand @left,
+//  caret @left,
+//  pipe @left,
+//  lessEqual @left,
+//  less @left,
+//  greaterEquals @left,
+//  greater @left,
+//  nmatch,
+//  match,
+//  neq,
+//  eq3,
+//  eq2,
+//  cmp,
+//  andop @left,
+//  orop @left,
+  range,
+//  ternary @right,
+  rescue @left,
+  assign @right
+//  defined,
+//  not @right,
+  and @left,
+  or @left,
+  in
+}
+
 @skip { whitespace | LineComment | BlockComment }
 
-@top Program { compstatement }
+@top Program { top_compstmt }
 
-semi { ";" | "\n" }
+top_compstmt { top_stmts opt_terms }
 
-compstatement {
-	statement (semi expression)? semi?
+top_stmts {
+	"" |
+    top_stmt |
+	top_stmts terms top_stmt
+//	error top_stmt
 }
 
-statement {
-	expression
+top_stmt {
+	stmt |
+	kw<"BEGIN"> begin_block
 }
 
-expression {
-	AssignmentExpression
+opt_terms { "" | terms }
+terms { term | terms ";" }
+term { ";" | "\n" }
+
+stmt {
+//	kw<"alias"> fitem fitem
+//	| kw<"alias"> tGVAR tGVAR
+//	| kw<"alias"> tGVAR tBACK_REF
+//	| kw<"alias"> tGVAR tNTH_REF
+//	| kw<"undef"> undef_list
+//	| stmt modifier_if expr_value
+//	| stmt modifier_unless expr_value
+//	| stmt modifier_while expr_value
+//	| stmt modifier_until expr_value
+//	| stmt modifier_rescue stmt
+//	| keyword_END '{' compstmt '}'
+//	| command_asgn
+//	| mlhs '=' lex_ctxt command_call
+	lhs '=' lex_ctxt mrhs
+//	| mlhs '=' lex_ctxt mrhs_arg
+	| expr
 }
 
-AssignmentExpression {
-	LeftHandSide "=" Arg
+compstmt { stmts opt_terms }
+
+stmts {
+	"" |
+	stmt_or_begin |
+	stmts terms stmt_or_begin
+//	error stmt
 }
 
-LeftHandSide {
-	Variable
+stmt_or_begin {
+	stmt |
+	kw<"BEGIN"> begin_block
 }
 
-Arg {
-	AssignmentExpression |
+begin_block {
+	'{' top_compstmt '}'
+}
+
+expr {
+//	command_call |
+	expr !and kw<"and"> expr |
+	expr !or kw<"or"> expr |
+//	kw<"not"> opt_nl expr |
+//	'!' command_call |
+	arg "=>" |
+	arg !in kw<"in">
+//	arg %prec tLBRACE_ARG
+}
+
+user_variable {
+	identifier |
+	instanceVariable |
+	globalVariable |
+	constant |
+	classVariable
+}
+
+nonlocal_var {
+	instanceVariable |
+	globalVariable
+	classVariable
+}
+
+arg_rhs {
+	arg !assign opAssign |
+	arg !rescue kw<"rescue"> arg
+}
+
+lhs {
+	user_variable |
+	keyword_variable
+}
+
+keyword_variable {
+	kw<"nil"> |
+	kw<"self"> |
+	boolean |
+	kw<"__FILE__"> |
+	kw<"__LINE__"> |
+	kw<"__ENCODING__">
+}
+
+arg {
+	lhs !assign "=" arg_rhs |
+	arg !range dot2 arg |
+	arg !range dot3 arg |
+	arg !plus "+" arg |
+	arg !minus "-" arg |
+	arg !times "*" arg |
+	arg !divide "/" arg |
+	arg !modulo "%" arg |
 	Primary
 }
 
+mrhs {
+	args ',' arg_value |
+	args ',' "*" arg_value |
+	"*" arg_value
+}
+
+lex_ctxt { "" }
+
+arg_value { arg }
+
+args {
+	arg_value |
+	"*" arg_value |
+	"*" |
+	args ',' arg_value |
+	args ',' "*" arg_value |
+	args ',' "*"
+}
+
 Primary {
-	Literal |
-	Variable |
-	kw<"def"> FunctionName ArgDeclaration compstatement kw<"end">
+	literal |
+	var_ref |
+	ClassDeclaration |
+	ModuleDeclaration |
+	FunctionDeclaration	
+}
+
+var_ref {
+	user_variable |
+	keyword_variable
+}
+
+bodystmt {
+	compstmt opt_rescue kw<"else"> compstmt opt_ensure |
+	compstmt opt_rescue opt_ensure
+}
+
+opt_rescue {
+	kw<"rescue"> exc_list exc_var then compstmt opt_rescue |
+	""
+}
+
+exc_var { "=>" lhs | "" }
+
+then {
+	term |
+	kw<"then"> |
+	term kw<"then">
+}
+
+exc_list {
+	arg_value |
+	mrhs |
+	""
+}
+
+opt_ensure {
+	kw<"ensure"> compstmt |
+	""
+}
+
+ClassDeclaration {
+	kw<"class"> identifier ("<" identifier)? bodystmt kw<"end">
+}
+
+ModuleDeclaration {
+	kw<"module"> identifier bodystmt kw<"end">
+}
+
+FunctionDeclaration {
+	kw<"def"> FunctionName ArgDeclaration bodystmt kw<"end">
 }
 
 ArgDeclaration {
 	"(" ArgumentList ")" |
-	ArgumentList semi
+	ArgumentList term
 }
 
 ArgumentList {
@@ -54,30 +245,7 @@ closureArgument {
 	"&" identifier
 }
 
-Variable {
-	VarName | kw<"nil"> | kw<"self">
-}
-
-Literal {
-	String |
-	Number |
-	boolean |
-	Symbol
-}
-
-VarName {
-	global |
-	localVariable |
-	identifier
-}
-
-localVariable {
-	"@" identifier
-}
-
-global {
-	"$" identifier
-}
+literal { Number | Symbol }
 
 Number {
 	integerOrFloat |
@@ -88,7 +256,7 @@ Number {
 }
 
 Symbol {
-	":" (global | localVariable | FunctionName)
+	":" (globalVariable | instanceVariable | classVariable | FunctionName)
 }
 
 FunctionName {
@@ -125,6 +293,16 @@ FunctionName {
 	//whitespace { std.whitespace+ }
 
 	identifier { std.asciiLetter (std.asciiLetter | std.digit | "_")* }
+
+	instanceVariable { "@" identifier }
+
+	globalVariable { "$" identifier }
+
+	constant { $[A-Z] (std.asciiLetter | std.digit | "_")* }
+
+	classVariable { "@@" identifier }
+
+	@precedence { classVariable, instanceVariable, globalVariable, identifier }
 
 	LineComment {  "#" ![\n]* }
 
@@ -164,6 +342,14 @@ FunctionName {
 	}
 
 	@precedence { binary, hexadecimal, decimal, octal, integerOrFloat }
+
+	opAssign {
+		"*=" | "+=" | "-=" | "/=" | "%=" | "**=" | "<<=" | ">>=" | "&&=" | "&=" | "^=" | "|=" | "||="
+	}
+
+	dot3 { "..." }
+	dot2 {".." }
+	@precedence { dot3, dot2 }
 }
 
 // Keywords

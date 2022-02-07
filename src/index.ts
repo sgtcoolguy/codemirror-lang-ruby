@@ -39,7 +39,7 @@ export const rubyLanguage = LRLanguage.define({
       }),
       styleTags({
         "for while do if else switch begin rescue ensure return throw break continue default case": t.controlKeyword,
-        "def end": t.definitionKeyword,
+        "def end class": t.definitionKeyword,
         VarName: t.variableName,
         BooleanLiteral: t.bool,
         String: t.string,

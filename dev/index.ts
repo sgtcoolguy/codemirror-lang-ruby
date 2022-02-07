@@ -15,16 +15,20 @@ identifier = 'string';
 
 something = true;
 
-def method(arg, *rest)
-end
+module MonkeyPatch
+  class Example < Object
+    def method(arg, *rest)
+    end
 
-def each_explicit(&block)
-  return to_enum(:each) unless block
+    def each_explicit(&block)
+      return to_enum(:each) unless block
 
-  i = 0
-  while i < size
-    block.call at(i)
-    i += 1
+      i = 0
+      while i < size
+        block.call at(i)
+        i += 1
+      end
+    end
   end
 end
 `
